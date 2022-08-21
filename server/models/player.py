@@ -1,0 +1,37 @@
+from pydantic import BaseModel
+
+class Player(BaseModel):
+    steam_id: int
+    nickname: str
+    team: str
+    kills: int
+    deaths: int
+    kdr: float
+    assists: int
+    tradeKills: int
+    teamKills: int
+    suicides: int
+    flashAssists: int
+    totalDamageGiven: int
+    totalDamageTaken: int
+    totalTeamDamageGiven: int
+    adr: float
+    totalShots: int
+    shotsHit: int
+    accuracy: float
+    rating: float
+    kast: float
+    hs: int
+    hsPercent: float
+    firstKills: int
+    firstDeaths: int
+    utilityDamage: int
+    smokesThrown: int
+    flashesThrown: int
+    heThrown: int
+    fireThrown: int
+    enemiesFlashed: int
+    teammatesFlashed: int
+    blindTime: float
+    plants: int
+    defuses: int
