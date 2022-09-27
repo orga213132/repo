@@ -19,7 +19,7 @@ async def add_user(user: dict) -> bool:
     new_user = User().dict()
     for key in user.keys():
         new_user[key] = user[key]
-    user = await user_rcollection.insert_one(new_user)
+    user = await user_collection.insert_one(new_user)
     await user_collection.find_one({"_id": ObjectId(user.inserted_id)})
     return True
 

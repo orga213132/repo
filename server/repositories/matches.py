@@ -1,3 +1,4 @@
+from urllib import request
 from db.base import match_helper, match_collection, analyzed_demo_collection, user_line_collection
 from bson import ObjectId
 from models.matches import Match
@@ -6,16 +7,38 @@ from core.config import headers
 import json
 from .demo_analyzer import analyze_match
 
-async def add_match(player_stats: list, match_stats: dict) -> bool:
+async def add_match(player_stats: list, match_stats: dict, id: str) -> bool:
     players1 = list()
     players2 = list()
     players_id = list()
+    url = f'https://open.faceit.com/data/v4/matches/{id}'
+    request = requests.get(url, headers=headers)
+    response = json.loads(request.text)
+    players_faceit_stats = dict()
+    for player in response['teams']['faction1']['roster']:
+        players_faceit_stats[player['nickname']] = {
+            'avatar': player['avatar'],
+            'level': player['game_skill_level']
+        }
+    for player in response['teams']['faction2']['roster']:
+        players_faceit_stats[player['nickname']] = {
+            'avatar': player['avatar'],
+            'level': player['game_skill_level']
+        }
+
     for player in player_stats.keys():
         players_id.append(player_stats[player]['steamID'])
-        if player_stats[player]['playerName'] == match_stats['teams']['team1']['name']:
-            players1.append(player_stats[player])
+
+        if player_stats[player]['teamName'] == match_stats['teams']['team1']['name']:
+            if player_stats[player]['playerName'] in list(players_faceit_stats.keys()):
+                player_stats[player]['avatar'] = players_faceit_stats[player_stats[player]['playerName']]['avatar']
+                player_stats[player]['level'] = players_faceit_stats[player_stats[player]['playerName']]['level']
+                players1.append(player_stats[player])
         else:
-            players2.append(player_stats[player])
+            if player_stats[player]['playerName'] in list(players_faceit_stats.keys()):
+                player_stats[player]['avatar'] = players_faceit_stats[player_stats[player]['playerName']]['avatar']
+                player_stats[player]['level'] = players_faceit_stats[player_stats[player]['playerName']]['level']
+                players2.append(player_stats[player])
 
     match = {
         'map': match_stats['map'],
@@ -104,7 +127,7 @@ async def update_last20(id: int):
                             await user_line_collection.insert_one({'steam_id': players_stats[player][key]})
                     if key in new_stats.keys():
                         new_stats[key] += players_stats[player][key]
-        await add_match(players_stats, match_stats)
+        await add_match(players_stats, match_stats, match_id)
         await analyzed_demo_collection.insert_one({'match_id': match_id})
     return count, new_stats
         
